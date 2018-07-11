@@ -27,7 +27,7 @@ export class MutualTls  {
   callServerProtectedByClientAuthentication(): void {
     console.log('callServerProtectedByClientAuthentication');
     console.log("host: ", this.host);
-    let allRequest = this.host + "/";
+    let allRequest = this.host;
     this.yapeOkHttpClient = new HttpClient(this.application, this.serverCertificate, this.clientCertificate);
     console.log("this.yapeOkHttpClient ", JSON.stringify(this.yapeOkHttpClient));
     let request = new okhttp3.Request.Builder().url(allRequest).build();
@@ -47,6 +47,7 @@ export class MutualTls  {
         onResponse: (call, response) => {
           let testResult: string = response.body().string();
           console.log("Response Result: ", testResult);
+          alert("Response Result: \n" + testResult);
 
         }
       }));
