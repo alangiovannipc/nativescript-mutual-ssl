@@ -22,7 +22,7 @@ export class HttpClient  {
     let trustManagerFactory = javax.net.ssl.TrustManagerFactory.getInstance(javax.net.ssl.TrustManagerFactory.getDefaultAlgorithm());
     let localKeystore = this.loadCaLocalCertificate(CertificateFactory, this.serverCertificate, KeyStore);
     let trustManager = this.addTrustManager(localKeystore, trustManagerFactory);
-    let keyManagerFactory = this.loadClientCertificate(this.clientCertificate);
+    let keyManagerFactory = this.loadClientCertificate(this.clientCertificate, KeyStore, KeyManagerFactory);
     let sslSocketFactory = this.initializeSSLContext(keyManagerFactory, trustManagerFactory);
 
     return this.buildOkHttpClient(sslSocketFactory, trustManager, cache);
@@ -76,17 +76,17 @@ export class HttpClient  {
     return trustManager;
   }
 
-  loadClientCertificate(clientCertificate): any {
+  loadClientCertificate(clientCertificate, _KeyStore, _KeyManagerFactory): any {
     console.log("Loading Client Certificate");
     let keyStoreStream = clientCertificate;
-    let keyStore = java.security.KeyStore.getInstance("PKCS12");
+    let keyStore = _KeyStore.getInstance("PKCS12");
     try {
       keyStore.load(keyStoreStream, new java.lang.String("topsecretclientp12").toCharArray());
     } catch (e) {
       console.log("Error: ", e);
     }
 
-    let keyManagerFactory = javax.net.ssl.KeyManagerFactory.getInstance(javax.net.ssl.KeyManagerFactory.getDefaultAlgorithm());
+    let keyManagerFactory = _KeyManagerFactory.getInstance(_KeyManagerFactory.getDefaultAlgorithm());
     keyManagerFactory.init(keyStore, new java.lang.String("topsecretclientp12").toCharArray());
     return keyManagerFactory;
   }
