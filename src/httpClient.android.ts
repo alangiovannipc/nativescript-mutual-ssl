@@ -22,7 +22,7 @@ export class HttpClient  {
     let trustManagerFactory = javax.net.ssl.TrustManagerFactory.getInstance(javax.net.ssl.TrustManagerFactory.getDefaultAlgorithm());
     let localKeystore = this.loadCaLocalCertificate(CertificateFactory, this.serverCertificate, KeyStore);
     let trustManager = this.addTrustManager(localKeystore, trustManagerFactory);
-    let keyManagerFactory = this.loadClientCertificate(KeyStore, KeyManagerFactory);
+    let keyManagerFactory = this.loadClientCertificate(this.clientCertificate);
     let sslSocketFactory = this.initializeSSLContext(keyManagerFactory, trustManagerFactory);
 
     return this.buildOkHttpClient(sslSocketFactory, trustManager, cache);
@@ -76,18 +76,22 @@ export class HttpClient  {
     return trustManager;
   }
 
-  loadClientCertificate(KeyStore, KeyManagerFactory): any {
-    console.log("Load client certificate");
-    let keyStoreStream = this.clientCertificate;
-    let keyStore = KeyStore.getInstance("PKCS12");
-    keyStore.load(keyStoreStream, "topsecretclientp12".toString());
+  loadClientCertificate(clientCertificate): any {
+    console.log("Loading Client Certificate");
+    let keyStoreStream = clientCertificate;
+    let keyStore = java.security.KeyStore.getInstance("PKCS12");
+    try {
+      keyStore.load(keyStoreStream, new java.lang.String("topsecretclientp12").toCharArray());
+    } catch (e) {
+      console.log("Error: ", e);
+    }
 
-    let keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-    keyManagerFactory.init(keyStore, "topsecretclientp12".toString());
+    let keyManagerFactory = javax.net.ssl.KeyManagerFactory.getInstance(javax.net.ssl.KeyManagerFactory.getDefaultAlgorithm());
+    keyManagerFactory.init(keyStore, new java.lang.String("topsecretclientp12").toCharArray());
     return keyManagerFactory;
   }
 
-  initializeSSLContext(keyManagerFactory, trustManagerFactory): any{
+  initializeSSLContext(keyManagerFactory, trustManagerFactory): any {
     console.log("initialize SSLContext");
     let sslContext = javax.net.ssl.SSLContext.getInstance("TLS");
     sslContext.init(keyManagerFactory.getKeyManagers(),
