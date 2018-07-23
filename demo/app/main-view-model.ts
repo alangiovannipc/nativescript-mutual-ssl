@@ -13,7 +13,7 @@ export class HelloWorldModel extends Observable {
   }
 
   test(): void {
-    let host: string = "https://192.168.1.34";
+    let host: string = "https://192.168.1.34/index.json";
     let context: any = androidApp.nativeApp;
     this.mutualTls = new MutualTls(host, context);
 

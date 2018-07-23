@@ -11,7 +11,6 @@ export function pageLoaded(args: observable.EventData) {
 }
 
 export function testMutual() {
-    alert("Start the test");
     let model = new HelloWorldModel();
     model.test();
 }
