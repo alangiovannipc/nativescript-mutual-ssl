@@ -21,6 +21,8 @@ export class HelloWorldModel extends Observable {
     let serverCertificate = dir.getFile('server.crt').path;
     let clientCertificate = dir.getFile('client.p12').path;
 
+
+
     let serverCertificateInputStream: java.io.FileInputStream;
     let clientCertificateInputStream: java.io.FileInputStream;
 
@@ -31,6 +33,8 @@ export class HelloWorldModel extends Observable {
     // CLientCertification
     let clientFile = new java.io.File(clientCertificate);
     clientCertificateInputStream = new java.io.FileInputStream(clientFile);
+
+
 
 
     this.mutualTls.setServerCertificate(serverCertificateInputStream);
