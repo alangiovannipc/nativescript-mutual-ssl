@@ -1,6 +1,6 @@
 import { Common } from './mutual-tls.common';
 export declare class MutualTls {
-  constructor(application, pathCert);
+  constructor(pathCert);
   create(): MutualTls;
   url(url: string): MutualTls;
   body(body: any): MutualTls;

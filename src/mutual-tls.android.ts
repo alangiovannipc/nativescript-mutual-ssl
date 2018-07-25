@@ -1,35 +1,11 @@
 
 import { android as androidApp } from 'tns-core-modules/application';
 import {HttpClient} from "./httpClient";
+import {WHeader, WPathCert} from "./interfaces";
+import {Utils} from "./util";
+import {Certificate} from "./certificate";
 
 declare const java: any;
-
-export interface WPathCert {
-  server: string;
-  client: string;
-}
-
-export interface WHeader {
-  name: string;
-  value: string;
-}
-
-export class Utils {
-
-  static File(name: string): java.io.FileInputStream {
-    let clientFile = new java.io.File(name);
-    return new java.io.FileInputStream(clientFile);
-  }
-
-  static isValidatePath(path: string): boolean {
-   if (path === null || path.length === 0) return false;
-   return true;
-  }
-
-  static isValidateMethod(method: string): boolean {
-    return true;
-  }
-}
 
 export const methods = {
   'GET': 'GET',
@@ -41,23 +17,30 @@ export const methods = {
 
 export class MutualTls  {
   private _application: android.app.Application;
-  private _serverCertificate: java.io.InputStream;
-  private _path: WPathCert;
-  private _clientCertificate: java.io.InputStream;
+  private _cert: Certificate;
   private _url: string;
   private yapeOkHttpClient: HttpClient;
   private _headers: WHeader[] = [];
   private _body: any;
 
-  constructor(application, pathCert: WPathCert) {
-    this._application = application;
-    this._path = pathCert;
+  private loadServer: boolean = false;
+
+  constructor() {
+    this._application = androidApp.nativeApp;
+    this.setLoadServerFlag(true);
+  }
+
+  setLoadServerFlag(loadServer: boolean): void {
+    this.loadServer = loadServer;
+  }
+
+  get isNeedLoadServer(): boolean {
+    return this.loadServer;
   }
 
   create(): MutualTls {
     try {
-      this.createClientCert();
-      this.createServerCert();
+      this._cert = new Certificate();
       this.build();
     } catch (error) {
       throw `Error to create the client and server cert : ${error}`;
@@ -123,18 +106,10 @@ export class MutualTls  {
     }
   }
 
-  private createClientCert(): void {
-    if (!Utils.isValidatePath(this._path.client)) throw "Error: Client Directory empty or null"; // clientCertificate;
-    this._clientCertificate = Utils.File(this._path.client);
-  }
-
-  private createServerCert(): void {
-    if (!Utils.isValidatePath(this._path.server)) throw "Error: Server Directory empty or null"; // serverCertificate;
-    this._serverCertificate = Utils.File(this._path.server);
-  }
-
   private build(): void {
-    this.yapeOkHttpClient = new HttpClient(this._application, this._serverCertificate, this._clientCertificate);
+    let serverCert = null;
+    if (this.isNeedLoadServer) { serverCert = this._cert.createServerCert(); }
+    this.yapeOkHttpClient = new HttpClient(this._application, serverCert, this._cert.createClientCert());
   }
 
   private makeRequest(request): any {

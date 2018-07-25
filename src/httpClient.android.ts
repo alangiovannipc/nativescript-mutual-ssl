@@ -18,11 +18,17 @@ export class HttpClient  {
     console.log("Start process getYapeOkHttpClient");
     let cacheSize: number = 30 * 1024 * 1024;
     let cache = new okhttp3.Cache(this.application.getCacheDir(), cacheSize);
-
     let trustManagerFactory = javax.net.ssl.TrustManagerFactory.getInstance(javax.net.ssl.TrustManagerFactory.getDefaultAlgorithm());
-    let localKeystore = this.loadCaLocalCertificate(CertificateFactory, this.serverCertificate, KeyStore);
-    let trustManager = this.addTrustManager(localKeystore, trustManagerFactory);
+
+    // Loading the client cert
     let keyManagerFactory = this.loadClientCertificate(this.clientCertificate, KeyStore, KeyManagerFactory);
+    // Loading the server cert
+    let trustManager = null;
+    if (this.serverCertificate) {
+      let localKeystore = this.loadCaLocalCertificate(CertificateFactory, this.serverCertificate, KeyStore);
+      trustManager = this.addTrustManager(localKeystore, trustManagerFactory);
+    }
+
     let sslSocketFactory = this.initializeSSLContext(keyManagerFactory, trustManagerFactory);
 
     return this.buildOkHttpClient(sslSocketFactory, trustManager, cache);
@@ -43,7 +49,13 @@ export class HttpClient  {
     }
 
     try {
-      client.sslSocketFactory(sslSocketFactory, trustManager);
+
+      if (trustManager === null) {
+        client.sslSocketFactory(sslSocketFactory);
+      } else {
+        client.sslSocketFactory(sslSocketFactory, trustManager);
+      }
+
     } catch (error) {
       console.error('nativescript-mutual-tls > client.sslSocketFactory error', error);
     }
