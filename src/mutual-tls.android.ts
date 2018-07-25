@@ -21,23 +21,22 @@ export class Utils {
     return new java.io.FileInputStream(clientFile);
   }
 
-  static ValidatePath(path: string): boolean{
-   if (path.length === 0 || path === null) return false;
+  static isValidatePath(path: string): boolean {
+   if (path === null || path.length === 0) return false;
    return true;
   }
 
-  static ValidateMethod(method: string): boolean {
+  static isValidateMethod(method: string): boolean {
     return true;
   }
 }
 
 export const methods = {
-  'GET': 'get',
-  'HEAD': 'head',
-  'DELETE': 'delete',
-  'POST': 'post',
-  'PUT': 'put',
-  'PATCH': 'patch',
+  'GET': 'GET',
+  'HEAD': 'HEAD',
+  'DELETE': 'DELETE',
+  'POST': 'POST',
+  'PUT': 'PUT',
 };
 
 export class MutualTls  {
@@ -47,10 +46,10 @@ export class MutualTls  {
   private _clientCertificate: java.io.InputStream;
   private _url: string;
   private yapeOkHttpClient: HttpClient;
-  private _headers: WHeader[];
+  private _headers: WHeader[] = [];
   private _body: any;
 
-  constructor({application = null, pathCert= {server: '', client: ''}}) {
+  constructor(application, pathCert: WPathCert) {
     this._application = application;
     this._path = pathCert;
   }
@@ -81,16 +80,28 @@ export class MutualTls  {
     return this;
   }
 
+  post(): MutualTls {
+    let request: okhttp3.Request = this.createRequest(methods.POST);
+    this.makeRequest(request);
+    return this;
+  }
+
+  get(): MutualTls {
+    let request: okhttp3.Request = this.createRequest(methods.GET);
+    this.makeRequest(request);
+    return this;
+  }
+
   private createRequest(method: string): okhttp3.Request {
-    if (Utils.ValidateMethod(method)) throw `Error: ${method} is invalid`;
+    if (!Utils.isValidateMethod(method)) throw `Error: ${method} is invalid`;
 
     let request = new okhttp3.Request.Builder()
       .url(this._url)
-      .method(method, this.createBody()); // .post(this.createBody());
+      .method(method, null); // .post(this.createBody());
 
-    if (this._headers) {
-      Object.keys(this._headers).forEach(function (key) {
-        request.addHeader(key, this._headers[key] as any);
+    if (this._headers && this._headers.length > 0) {
+      this._headers.forEach(function (header) {
+        request.addHeader(header.name, header.value);
       });
     }
 
@@ -99,8 +110,10 @@ export class MutualTls  {
 
   private createBody(): okhttp3.RequestBody {
     try {
+      console.log("this._body");
+      console.log(JSON.stringify(this._body));
       let jsonMediaType = okhttp3.MediaType.parse("application/json; charset=utf-8");
-      let body = JSON.stringify(this.body || {});
+      let body = JSON.stringify(this._body || {});
       return okhttp3.RequestBody.create(
         jsonMediaType,
         body
@@ -111,12 +124,12 @@ export class MutualTls  {
   }
 
   private createClientCert(): void {
-    if (Utils.ValidatePath(this._path.client)) throw "Error: Client Directory empty or null"; // clientCertificate;
+    if (!Utils.isValidatePath(this._path.client)) throw "Error: Client Directory empty or null"; // clientCertificate;
     this._clientCertificate = Utils.File(this._path.client);
   }
 
   private createServerCert(): void {
-    if (Utils.ValidatePath(this._path.server)) throw "Error: Server Directory empty or null"; // serverCertificate;
+    if (!Utils.isValidatePath(this._path.server)) throw "Error: Server Directory empty or null"; // serverCertificate;
     this._serverCertificate = Utils.File(this._path.server);
   }
 
@@ -124,7 +137,7 @@ export class MutualTls  {
     this.yapeOkHttpClient = new HttpClient(this._application, this._serverCertificate, this._clientCertificate);
   }
 
-  makeRequest(request): any {
+  private makeRequest(request): any {
     console.log("makeRequest: ", request);
     try {
       this.yapeOkHttpClient.getYapeOkHttpClient().newCall(request).enqueue(new okhttp3.Callback({

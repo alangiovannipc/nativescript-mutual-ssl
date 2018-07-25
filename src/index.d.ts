@@ -1,7 +1,10 @@
 import { Common } from './mutual-tls.common';
 export declare class MutualTls {
-  constructor(host: string, application: any);
-  setServerCertificate(serverCertificate: java.io.InputStream): void;
-  setClientCertificate(clientCertificate: java.io.InputStream): void;
-  callServerProtectedByClientAuthentication(): void;
+  constructor(application, pathCert);
+  create(): MutualTls;
+  url(url: string): MutualTls;
+  body(body: any): MutualTls;
+  addHeader(header: any): MutualTls;
+  post(): MutualTls;
+  get(): MutualTls;
 }

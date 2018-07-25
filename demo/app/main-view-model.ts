@@ -13,32 +13,24 @@ export class HelloWorldModel extends Observable {
   }
 
   test(): void {
-    let host: string = "https://192.168.1.34/index.json";
+    let host: string = "https://192.168.1.33/identity/login/start";
     let context: any = androidApp.nativeApp;
-    this.mutualTls = new MutualTls(host, context);
 
     let dir = knownFolders.currentApp().getFolder('certs');
     let serverCertificate = dir.getFile('server.crt').path;
     let clientCertificate = dir.getFile('client.p12').path;
 
+    console.log("clientCertificate => " + clientCertificate);
+    console.log("serverCertificate => " + serverCertificate);
 
+    this.mutualTls = new MutualTls(context, { server: serverCertificate, client: clientCertificate});
 
-    let serverCertificateInputStream: java.io.FileInputStream;
-    let clientCertificateInputStream: java.io.FileInputStream;
+    this.mutualTls
+      .create()
+      .url(host)
+      .body({})
+      .addHeader({name: 'Auth', value: '2323232323'})
+      .get();
 
-    // ServerCertification
-    let serverFile = new java.io.File(serverCertificate);
-    serverCertificateInputStream = new java.io.FileInputStream(serverFile);
-
-    // CLientCertification
-    let clientFile = new java.io.File(clientCertificate);
-    clientCertificateInputStream = new java.io.FileInputStream(clientFile);
-
-
-
-
-    this.mutualTls.setServerCertificate(serverCertificateInputStream);
-    this.mutualTls.setClientCertificate(clientCertificateInputStream);
-    this.mutualTls.callServerProtectedByClientAuthentication();
   }
 }
